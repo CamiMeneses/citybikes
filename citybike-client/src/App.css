@@ -30,3 +30,14 @@
     transform: rotate(360deg);
   }
 }
+
+.address{
+  font-weight: 700;
+  color: rgb(67, 15, 255);
+}
+
+h1{
+  display: flex;
+  justify-content: center;
+  color: white;
+}
