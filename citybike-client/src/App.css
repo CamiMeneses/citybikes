@@ -31,9 +31,14 @@
   }
 }
 
-.address{
+.name{
   font-weight: 700;
-  color: rgb(67, 15, 255);
+  color: rgb(65, 19, 173);
+}
+
+.description, .updates{
+  font-weight: 500;
+  color: rgb(105, 96, 136);
 }
 
 h1{
