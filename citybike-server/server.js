@@ -15,7 +15,7 @@ app.use(index);
 const server = http.createServer(app);
 const io = socketIo(server); // < Interesting!
 let interval;
-let timeout = 10000;
+let timeout = 5000;
 
 io.on("connection", socket => {
   var socketId = socket.id;

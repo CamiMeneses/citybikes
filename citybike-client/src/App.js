@@ -4,9 +4,8 @@ import React, { Component } from "react";
 import socketIOClient from "socket.io-client";
 import { Map, TileLayer, Marker, Popup } from "react-leaflet";
 import './App.css'
-import bikeIcon from './bicycle.png';
 
-import L from 'leaflet'; // To use leaflet https://leafletjs.com/
+import ShowSpots from "./components/ShowSpots";
 
 class App extends Component {
   constructor() {
@@ -19,7 +18,8 @@ class App extends Component {
       lng: -80.191788,
       zoom: 13,
       dataTime: [], // Records
-      sliderValue: ""
+      sliderValue: "",
+      differentFreebikes: []
     };
   }
 
@@ -56,6 +56,7 @@ class App extends Component {
     }
   }
 
+  // Checking for updates
   checkChanges(){
     if (this.state.response){
       var lastRegister = this.state.dataTime[this.state.dataTime.length-1]
@@ -64,35 +65,22 @@ class App extends Component {
       if(lastRegister){
         var data1stations = currentData.network.stations;
         var data2stations = lastRegister.network.stations;
-        var differentFreebikes = []
-
         var freebikes1 = {}
-        data1stations.forEach(station =>
-          {
-            freebikes1[station.name] = station.free_bikes
-          }
-        )
-
         var freebikes2 = {}
-        data2stations.forEach(station =>
-          {
-            freebikes2[station.name] = station.free_bikes
-          }
-        )
+
+        data1stations.forEach(station => freebikes1[station.name] = station.free_bikes)
+        data2stations.forEach(station => freebikes2[station.name] = station.free_bikes)
 
         for (var name in freebikes1){
           if (freebikes1[name] == freebikes2[name]){
           }else{
-            console.log(name)
-            console.log(freebikes1[name])
-            console.log(freebikes2[name])
-            console.log("diferentes")
-            differentFreebikes.push([name,freebikes1[name]])
+            if(freebikes2[name]>=0 && freebikes1[name]>=0){
+              this.state.differentFreebikes.push([name, freebikes2[name], freebikes1[name]])
+            }
           }
         }
       }
-      console.log("checkUpdates:" + differentFreebikes);
-      return differentFreebikes;
+      console.log("checkUpdates:" + this.state.differentFreebikes);
     }
   }
 
@@ -109,40 +97,10 @@ class App extends Component {
   }
 
   getRecordStationsOnDate = (numRegis) => {
-    console.log("value " + this.state.sliderValue)
     if (this.state.dataTime[this.state.sliderValue-1]){
       var choosenRegisValue = this.state.dataTime[this.state.sliderValue-1].network.stations
     }
     return choosenRegisValue;
-  }
-
-  // Showing stations
-  showSpots = (icon, stationsData) => {
-    if(this.state.response){
-      var places = stationsData.map(
-        (station, index) => { //station has theses keys: empty_slots, extra{address, uid}, free_bikes, id, latitude, longitude, name, timestamp
-          return (
-            <div key={`divspot_${station.extra.uid}`}>
-              <Marker key={`marker_${station.extra.uid}`} position={[station.latitude, station.longitude]} icon={icon}>
-                <Popup>
-                  <div className="name">
-                    {station.name}
-                  </div>
-                  <div className="description">
-                    <hr />
-                    <b>Free bikes:</b> {station.free_bikes}
-                    <br />
-                    <b>Empty slots:</b> {station.empty_slots}
-                  </div>
-                </Popup>
-              </Marker>
-            </div>
-          );
-        },
-      );
-
-      return places;
-    }
   }
 
   handleOnChange = (e) => {
@@ -166,11 +124,6 @@ class App extends Component {
     var sliderText = this.sliderText(stationsData);
     var checkUpdates =  this.checkChanges();
 
-    var icon = L.icon({
-      iconUrl: bikeIcon,
-      iconSize: [30, 30]
-    });
-
     return (
       <div className="map">
         <h1> City Bikes in Miami </h1>
@@ -179,7 +132,7 @@ class App extends Component {
             attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          if (this.state.response){this.showSpots(icon, stationsData)}
+          <ShowSpots stationsData={stationsData}/>
         </Map>
 
         <div className= 'updates'>
@@ -191,7 +144,7 @@ class App extends Component {
           <div className="numRegis" style={{color: "#00ffff"}}>
             <p>
               Número de registros: {numRegis} <br />
-              Espera para ver el cambio en los registros. Actualizamos el registro cada 10 segundos, <br />
+              Espera para ver el cambio en los registros. El registro se actualiza cada 5 segundos, <br />
               sin embargo, City Bike no cambia en un promedio de 5 minutos.
             </p>
           </div>
