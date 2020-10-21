@@ -41,12 +41,13 @@ class App extends Component {
     console.log('new record added')
   }
 
-  //
+  // Getting info from firebase
   fillDataTime = async() => {
-    const querySnapshot = await db.collection('records').get(); //Get info from firebase
+    const querySnapshot = await db.collection('records').get();
     if (this.state.dataTime.length < 1){
-      querySnapshot.forEach(doc => { // Bring each record
-        this.state.dataTime.push(doc.data());
+      querySnapshot.forEach(doc => { // Bringing each record
+        this.state.dataTime.push(doc.data()); //filling dataTime with the Data Base
+        //Modifying dataTime to see changes easier
         let n = 0;
         let randDatatime = this.state.dataTime.length;
         while (n < 5) {
@@ -75,10 +76,6 @@ class App extends Component {
         this.recordFirebase();
         this.fillDataTime();
       }
-
-      if (dataTime.length >= 1000){ //Maximum: 1000 registers
-        dataTime.shift()
-      }
     }
   }
 
@@ -87,6 +84,8 @@ class App extends Component {
     if (this.state.response){
       var lastRegister = this.state.dataTime[this.state.dataTime.length-1]
       var currentData = this.state.response
+
+      //only compares the last resgister and the new one
 
       if(lastRegister){
         var data1stations = currentData.network.stations;
@@ -110,13 +109,13 @@ class App extends Component {
     }
   }
 
-  // Selecting between live or historical data
+  // Selecting between live or historical data for the slider
   setStationsData = (numRegis) =>{
     var stations = "";
 
     if(this.state.response){
       if (this.state.sliderValue !== ""){ stations = this.getRecordStationsOnDate(numRegis) }
-      if (!stations || ""){ stations = this.state.response.network.stations }
+      if (!stations || this.state.sliderValue == ""){ stations = this.state.response.network.stations }
 
       return stations;
     }
@@ -139,7 +138,9 @@ class App extends Component {
     if (stationsData){
       var StationsTimestamp = stationsData[0].timestamp
       var dateFormat = new Date(StationsTimestamp)
-      sliderDate = dateFormat.getHours() + 'h' + dateFormat.getMinutes() + 'm' + dateFormat.getSeconds() + 's';
+      sliderDate = (dateFormat.getDate() + '/' + dateFormat.getMonth() + '   -   '+
+                    dateFormat.getHours() + 'h' + dateFormat.getMinutes() + 'm' + dateFormat.getSeconds() + 's');
+      ;
     }
     return sliderDate;
   }
@@ -174,13 +175,13 @@ class App extends Component {
           <ShowSpots stationsData={stationsData}/>
         </Map>
         <div className="register" id="register">
-          <div className="numRegis" style={{color: "#00ffff"}}>
+          <div className="numRegis">
             <p>
               Número de registros: {numRegis} <br />
               El registro se actualiza cada 5 segundos, sin embargo, City Bike no cambia en un promedio de 5 minutos.
-              Ya que no se registran grandes cambios se realizaron algunas modificaciones aleatorias para que<br />los cambios fueran un poco mas significativos.
-
-              Base de datos usada: Firebase.
+              Ya que no se registran grandes cambios se realizaron algunas modificaciones aleatorias para que los cambios fueran un poco mas significativos.
+              <br />
+              Base de datos usada: <b>Firebase</b>.
             </p>
           </div>
         </div>
@@ -188,7 +189,7 @@ class App extends Component {
           <input type="range" min={0} max={numRegis} value={this.state.sliderValue} className="slider" onChange={this.handleOnChange}/>
           <div className="value" style={{color: "#00ffff"}}>
             <p>
-              <b>Registro número:</b> {this.state.sliderValue} <b>hora:</b> {sliderText}
+              <b>Registro número:</b> {this.state.sliderValue} <b>Fecha:</b> {sliderText}
             </p>
           </div>
         </div>

@@ -22,7 +22,7 @@ io.on("connection", socket => {
   var clientIp = socket.request.connection.remoteAddress;
   console.log('New connection ' + socketId + ' from ' + clientIp);
 
-  //---------------------- Checking free bikes
+  //---------------------- Checking free bikes each 5 seconds
   if (interval) {
     clearInterval(interval);
   }
