@@ -46,6 +46,3 @@ const checkBikes = async socket => {
 //----------------------
 
 server.listen(port, () => console.log(`Listening on port ${port}`));
-
-
-

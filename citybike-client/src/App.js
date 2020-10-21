@@ -2,8 +2,10 @@
 
 import React, { Component } from "react";
 import socketIOClient from "socket.io-client";
-import { Map, TileLayer, Marker, Popup } from "react-leaflet";
+import { Map, TileLayer} from "react-leaflet";
 import './App.css'
+import './firebase/firebase';
+import {db} from './firebase/firebase'
 
 import ShowSpots from "./components/ShowSpots";
 
@@ -33,6 +35,28 @@ class App extends Component {
     });
   }
 
+  // Recording Data Firebase
+  recordFirebase = async() => {
+    await db.collection('records').doc().set(this.state.response)
+    console.log('new record added')
+  }
+
+  //
+  fillDataTime = async() => {
+    const querySnapshot = await db.collection('records').get(); //Get info from firebase
+    if (this.state.dataTime.length < 1){
+      querySnapshot.forEach(doc => { // Bring each record
+        this.state.dataTime.push(doc.data());
+        let n = 0;
+        let randDatatime = this.state.dataTime.length;
+        while (n < 5) {
+         this.state.dataTime[randDatatime-1].network.stations[Math.floor(Math.random() * 146)].free_bikes = Math.floor(Math.random() * 15)
+          n ++;
+        }
+      })
+    }
+  }
+
   // Recording Data
   record = () => {
     if (this.state.response){
@@ -44,10 +68,12 @@ class App extends Component {
       if (lastRegister){
         var lastTimestamp = lastRegister.network.stations[0].timestamp
         if ( currentTimestamp !=  lastTimestamp ){ // It will not record registers with same time
-          dataTime.push(this.state.response)
+          dataTime.push(this.state.response);
+          this.recordFirebase();
         }
       }else{
-        dataTime.push(this.state.response)
+        this.recordFirebase();
+        this.fillDataTime();
       }
 
       if (dataTime.length >= 1000){ //Maximum: 1000 registers
@@ -80,7 +106,7 @@ class App extends Component {
           }
         }
       }
-      console.log("checkUpdates:" + this.state.differentFreebikes);
+      return this.state.differentFreebikes;
     }
   }
 
@@ -122,7 +148,20 @@ class App extends Component {
     var numRegis = this.state.dataTime.length;
     var stationsData = this.setStationsData(numRegis);
     var sliderText = this.sliderText(stationsData);
-    var checkUpdates =  this.checkChanges();
+    var checkUpdates;
+    if (this.checkChanges()){
+      checkUpdates = this.checkChanges().map((update, index) => {
+                      return (
+                          <tr key={index}>
+                            <td>{update[0]}</td>
+                            <td>{update[1]}</td>
+                            <td>{update[2]}</td>
+                          </tr>
+                      );
+                    })
+    }else{
+      checkUpdates = <div />;
+    }
 
     return (
       <div className="map">
@@ -134,18 +173,14 @@ class App extends Component {
           />
           <ShowSpots stationsData={stationsData}/>
         </Map>
-
-        <div className= 'updates'>
-          <h2>Last updates</h2>
-          <p>{checkUpdates}</p>
-        </div>
-
         <div className="register" id="register">
           <div className="numRegis" style={{color: "#00ffff"}}>
             <p>
               Número de registros: {numRegis} <br />
-              Espera para ver el cambio en los registros. El registro se actualiza cada 5 segundos, <br />
-              sin embargo, City Bike no cambia en un promedio de 5 minutos.
+              El registro se actualiza cada 5 segundos, sin embargo, City Bike no cambia en un promedio de 5 minutos.
+              Ya que no se registran grandes cambios se realizaron algunas modificaciones aleatorias para que<br />los cambios fueran un poco mas significativos.
+
+              Base de datos usada: Firebase.
             </p>
           </div>
         </div>
@@ -156,6 +191,10 @@ class App extends Component {
               <b>Registro número:</b> {this.state.sliderValue} <b>hora:</b> {sliderText}
             </p>
           </div>
+        </div>
+        <div className= 'updates'>
+          <h2>Last updates </h2>
+          {checkUpdates}
         </div>
       </div>
     );

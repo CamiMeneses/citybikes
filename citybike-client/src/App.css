@@ -41,6 +41,10 @@
   color: rgb(105, 96, 136);
 }
 
+.updates h{
+  color: white;
+}
+
 h1{
   display: flex;
   justify-content: center;

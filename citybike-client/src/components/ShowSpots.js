@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React from "react";
 import greenBikeIcon from '../assets/greenBike.png';
 import orangeBikeIcon from '../assets/orangeBike.png';
 import pinkBikeIcon from '../assets/pinkBike.png';
